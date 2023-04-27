@@ -1,3 +1,14 @@
+##
+# This particular spec file is based on bieszczaders/kernel-xanmod.
+# https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-xanmod/
+#
+# Credits to rmnscnce for the original spec file.
+# https://copr.fedorainfracloud.org/coprs/rmnscnce/
+# 
+# Credits to marioroy for the low latency customizations.
+# https://gist.github.com/marioroy/263bb5946da8ea63e0d35f9d6912b97c
+##
+
 %define _build_id_links none
 %define _disable_source_fetch 0
 
@@ -122,9 +133,95 @@ patch -p1 -i %{PATCH0}.unxz
 cp CONFIGS/xanmod/gcc/config_x86-64-v1 .config_upstream
 patch .config_upstream -i %{PATCH1} -o .config
 
+# Optimize the kernel for performance.
+scripts/config -e CC_OPTIMIZE_FOR_PERFORMANCE
+
 # Remove XanMod's localversion
 find . -name "localversion*" -delete
 scripts/config -u LOCALVERSION
+
+# Disable DEBUG.
+%if 1
+scripts/config -d DEBUG_INFO
+scripts/config -d DEBUG_INFO_BTF
+scripts/config -d DEBUG_INFO_DWARF4
+scripts/config -d DEBUG_INFO_DWARF5
+scripts/config -d PAHOLE_HAS_SPLIT_BTF
+scripts/config -d DEBUG_INFO_BTF_MODULES
+scripts/config -d SLUB_DEBUG
+scripts/config -d PM_DEBUG
+scripts/config -d PM_ADVANCED_DEBUG
+scripts/config -d PM_SLEEP_DEBUG
+scripts/config -d ACPI_DEBUG
+scripts/config -d SCHED_DEBUG
+scripts/config -d LATENCYTOP
+scripts/config -d DEBUG_PREEMPT
+%endif
+
+# Change tick rate to 1000.
+%if 1
+scripts/config -d HZ_500
+scripts/config -e HZ_1000
+scripts/config --set-val HZ 1000
+%endif
+
+# Enable full tickless mode.
+# https://docs.kernel.org/timers/no_hz.html
+%if 1
+scripts/config -d HZ_PERIODIC
+scripts/config -d NO_HZ_IDLE
+scripts/config -d CONTEXT_TRACKING_FORCE
+scripts/config -d CONTEXT_TRACKING_USER_FORCE
+scripts/config -e NO_HZ_FULL_NODEF
+scripts/config -e NO_HZ_FULL
+scripts/config -e NO_HZ
+scripts/config -e NO_HZ_COMMON
+scripts/config -e CONTEXT_TRACKING
+%endif
+
+# Set RCU options.
+# https://www.kernel.org/doc/Documentation/RCU/Design/Data-Structures/Data-Structures.html
+# https://raw.githubusercontent.com/CachyOS/linux-cachyos/master/linux-bore/config
+%if 1
+scripts/config -e RCU_EXPERT
+scripts/config -d FORCE_TASKS_RCU
+scripts/config -d FORCE_TASKS_RUDE_RCU
+scripts/config -d FORCE_TASKS_TRACE_RCU
+scripts/config --set-val RCU_FANOUT 64
+scripts/config --set-val RCU_FANOUT_LEAF 16
+scripts/config -e RCU_BOOST
+scripts/config --set-val RCU_BOOST_DELAY 500
+scripts/config -d RCU_EXP_KTHREAD
+scripts/config -e RCU_NOCB_CPU
+scripts/config -e RCU_NOCB_CPU_DEFAULT_ALL
+scripts/config -d RCU_NOCB_CPU_CB_BOOST
+scripts/config -d TASKS_TRACE_RCU_READ_MB
+scripts/config -d RCU_LAZY
+%endif
+
+# Enable full preempt.
+# https://raw.githubusercontent.com/CachyOS/linux-cachyos/master/linux-bore/config
+%if 1
+scripts/config -e PREEMPT_BUILD
+scripts/config -d PREEMPT_NONE
+scripts/config -d PREEMPT_VOLUNTARY
+scripts/config -e PREEMPT
+scripts/config -e PREEMPT_COUNT
+scripts/config -e PREEMPTION
+scripts/config -e PREEMPT_DYNAMIC
+%endif
+
+# Disable EVM extra SMACK extended attributes (default).
+# https://cateee.net/lkddb/web-lkddb/EVM_EXTRA_SMACK_XATTRS.html
+scripts/config -d EVM_EXTRA_SMACK_XATTRS
+
+# Compress kernel modules by default.
+scripts/config -e MODULE_COMPRESS_ZSTD
+scripts/config -e MODULE_DECOMPRESS
+
+# Misc options to build the kernel without user-interaction.
+scripts/config -d GCC_PLUGINS
+scripts/config -d UNWINDER_GUESS
 
 # Set kernel version string as build salt
 scripts/config --set-str BUILD_SALT "%{kverstr}"
