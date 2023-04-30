@@ -159,11 +159,11 @@ scripts/config -d DEBUG_PREEMPT
 %endif
 
 # Change tick rate to 1000.
-%if 1
-scripts/config -d HZ_500
-scripts/config -e HZ_1000
-scripts/config --set-val HZ 1000
-%endif
+# %if 1
+# scripts/config -d HZ_500
+# scripts/config -e HZ_1000
+# scripts/config --set-val HZ 1000
+# %endif
 
 # Enable full tickless mode.
 # https://docs.kernel.org/timers/no_hz.html
