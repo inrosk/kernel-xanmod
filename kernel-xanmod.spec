@@ -30,7 +30,7 @@ Name: kernel%{?flavor:-%{flavor}}
 Summary: The Linux Kernel with XanMod Patches
 
 %define _basekver 6.3
-%define _stablekver 0
+%define _stablekver 3
 Version: %{_basekver}.%{_stablekver}
 
 %define customver 1
@@ -47,7 +47,7 @@ Group: System Environment/Kernel
 Vendor: The Linux Community and XanMod maintainer(s)
 URL: https://xanmod.org
 Source0: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-%{_basekver}.tar.xz
-Patch0: https://github.com/xanmod/linux/releases/download/%{version}-xanmod%{customver}_rev2/patch-%{version}-xanmod%{customver}.xz
+Patch0: https://github.com/xanmod/linux/releases/download/%{version}-xanmod%{customver}/patch-%{version}-xanmod%{customver}.xz
 Patch1: fedora-config.diff
 %define __spec_install_post /usr/lib/rpm/brp-compress || :
 %define debug_package %{nil}
